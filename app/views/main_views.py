@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, render_template
 import yfinance as yf
 import json
 
@@ -13,8 +13,8 @@ def get_ticker_values(hist):
     mid = (high + low) / 2.0
     close = hist['Close'].iloc[-1]
     values_dic = {
-      "low": low,      
-      "high": high,      
+      "low": low,
+      "high": high,
       "mid" : mid,
       "close" : close,
       "is_buy" : bool(close < mid)
@@ -23,26 +23,32 @@ def get_ticker_values(hist):
 
 def get_gap(usdkrw, dxy):
     gap_dic = {}
-    mid = dxy.get("mid", 0) / usdkrw.get("mid", 0) * 100.0
-    close = dxy.get("close", 0) / usdkrw.get("close", 0) * 100.0
-    if dxy.get("mid", 0) and usdkrw.get("mid", 0):
-        gap_dic["mid"] = mid
+    if dxy.get("high", 0) and usdkrw.get("low", 0):
+        gap_dic["high"] = dxy.get("high", 0) / usdkrw.get("low", 0) * 100.0
+    if dxy.get("low", 0) and usdkrw.get("high", 0):
+        gap_dic["low"] = dxy.get("low", 0) / usdkrw.get("high", 0) * 100.0
     if dxy.get("close", 0) and usdkrw.get("close", 0):
-        gap_dic["close"] = close
+        close = gap_dic["close"] = dxy.get("close", 0) / usdkrw.get("close", 0) * 100.0
+    if dxy.get("mid", 0) and usdkrw.get("mid", 0):
+        mid = gap_dic["mid"] = dxy.get("mid", 0) / usdkrw.get("mid", 0) * 100.0
     gap_dic["is_buy"] = bool(close > mid)
     return gap_dic
 
 def get_proper_usdkrw(dxy, gap_rate, usdkrw):
     proper_dic = {}
-    value = 0
+    mid = 0
     if dxy.get("close", 0) and gap_rate.get("mid", 0):
-        value = dxy.get("close", 0) / gap_rate.get("mid", 0) * 100.0
-        usdkrw_close = usdkrw.get("close",0)
-        proper_dic = {
-          "value" : value,
-          "close" : usdkrw_close,
-          "is_buy" : bool(usdkrw_close < value)
-        }
+        mid = dxy.get("close", 0) / gap_rate.get("mid", 0) * 100.0
+        proper_dic["mid"] = mid
+    if dxy.get("high", 0) and gap_rate.get("low", 0):
+        proper_dic["high"] = dxy.get("high", 0) / gap_rate.get("low", 0) * 100.0
+    if dxy.get("low", 0) and gap_rate.get("high", 0):
+        proper_dic["low"] = dxy.get("low", 0) / gap_rate.get("high", 0) * 100.0
+    if usdkrw.get("close", 0):
+        usdkrw_close = usdkrw.get("close", 0)
+        proper_dic["close"] = usdkrw_close
+    if mid and usdkrw_close:
+        proper_dic["is_buy"] = bool(usdkrw_close < mid)
     return proper_dic
 
 bp = Blueprint('main', __name__, url_prefix='/')
@@ -63,4 +69,4 @@ def get_dollar_json(period):
 
 @bp.route('/')
 def index():
-    return 'dollar index'
+    return render_template('index.html')
