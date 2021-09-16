@@ -1,0 +1,101 @@
+<!DOCTYPE HTML>
+<html lang="ko">
+<head>
+<style type="text/css">
+table { font-size: 400%; }
+td { text-align: center; vertical-align: top; }
+.false { color: red; stroke: red; fill: red; }
+.true { color: green; stroke: green; fill: green; }
+line { stroke-width:10; stroke:rgb(0,0,0); }
+.heavy { font: bold 30px sans-serif; }
+</style>
+<script
+  src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous"></script>
+</head>
+<body>
+
+<h1>투자 데이터</h1>
+<select>
+  <option value='1mo' selected>1달</option>
+  <option value='1y'>1년</option>
+  <option value='3mo'>3달</option>
+  <option value='6mo'>6달</option>
+</select>
+<h2>달러지수대비 적정환율</h2>
+<table width="100%">
+<tr>
+<td>달러 지수</td>
+<td>52주 달러 갭</td>
+<td>적정환율</td>
+</tr>
+<tr>
+<td id="dxy_close">-</td>
+<td id="gap_mid">-</td>
+<td id="proper_mid">-</td>
+</tr>
+</table>
+<h2>달러지수대비</h2>
+<p><a href="https://blog.naver.com/boot/222430430028" target="_blank">ⓘ 달러투자 가이드</a></p>
+<h3>원달러 환율</h3>
+<table width="100%" id="usdkrw">
+</table>
+<h3>달러 인덱스</h3>
+<table width="100%" id="dxy">
+</table>
+<h3>달러 갭 비율</h3>
+<table width="100%" id="gap">
+</table>
+<h3>적정 환율</h3>
+<table width="100%" id="proper">
+</table>
+<script>
+function make_table(id, data) {
+  var buy_str = 'X';
+  var pos_rate = (data.close - data.low) / (data.high - data.low) * 100.0;
+  pos_rate = pos_rate.toFixed(2);
+  if(data.is_buy)  buy_str = 'O';
+  s =  '<tr>';
+  s += '<td width="10%" align="center" class="' + data.is_buy + '">' + buy_str + '</td>';
+  s += '<td width="90%">';
+  s += '<svg height="100" width="100%">';
+  s += '  <line x1="0" y1="50" x2="100%" y2="50"/>';
+  s += '  <line x1="50%" y1="40" x2="50%" y2="60"/>';
+  s += '  <text x="0" y="90" class="heavy" text-anchor="start">' + data.low.toFixed(2) + '</text>';
+  s += '  <text x="50%" y="90" class="heavy" text-anchor="middle">' + data.mid.toFixed(2) + '</text>';
+  s += '  <text x="100%" y="90" class="heavy" text-anchor="end">' + data.high.toFixed(2) + '</text>';
+  s += '  <line x1="' + pos_rate + '%" y1="45" x2="' + pos_rate + '%" y2="55" class="' + data.is_buy + '"/>';
+  s += '  <text x="' + pos_rate + '%" y="35" text-anchor="middle" class="' + data.is_buy + ' heavy">' + data.close.toFixed(2) + '</text>';
+  s += '  Sorry, your browser does not support inline SVG.';
+  s += '</svg>';
+  s += '</td>';
+  s += '</tr>';
+  $("#"+id).html(s);
+}
+function get_data(data) {
+  obj = JSON.parse(data);
+  make_table("usdkrw", obj.usdkrw)
+  make_table("dxy", obj.dxy)
+  make_table("gap", obj.gap)
+  make_table("proper", obj.proper)
+  $("#dxy_close").html(obj.dxy.close.toFixed(2));
+  $("#gap_mid").html(obj.gap.mid.toFixed(2) + "%");
+  $("#proper_mid").html(obj.proper.mid.toFixed(2));
+}
+
+var url ="/dollar/1mo"
+$('select').on('change', function() {
+  url ="/dollar/" + this.value;
+  $.ajax({
+    url: url,
+    success: get_data
+  });
+});
+$.ajax({
+  url: url,
+  success: get_data
+});
+</script>
+</body>
+</html>
