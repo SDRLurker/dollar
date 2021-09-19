@@ -1,11 +1,27 @@
 from flask import Blueprint, render_template
 import yfinance as yf
 import json
+import datetime
 
 def get_ticker_hist(symbol, period):
-    df = yf.Ticker(symbol)
-    hist = df.history(period=period, auto_adjust=False)
-    return hist
+    obj = yf.Ticker(symbol)
+    hist_df = obj.history(period=period, auto_adjust=False)
+    if abs(hist_df['Close'].iloc[-1] - obj.info['regularMarketPrice']) > 0.1:
+        hist_df = hist_df.reset_index()
+        new_row = {
+          'Date' : datetime.datetime.now(),
+          'Open' : obj.info['regularMarketOpen'],
+          'High' : obj.info['regularMarketDayHigh'],
+          'Low' : obj.info['regularMarketDayLow'],
+          'Close' : obj.info['regularMarketPrice'],
+          'Adj Close' : obj.info['regularMarketPrice'],
+          'Volume' : 0,
+          'Dividends' : 0,
+          'Volume' : 0
+        }
+        hist_df = hist_df.append(new_row,ignore_index=True)
+        hist_df = hist_df.set_index('Date')
+    return hist_df
 
 def get_ticker_values(hist):
     low = hist['Low'].min()
