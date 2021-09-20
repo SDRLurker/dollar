@@ -66,7 +66,12 @@ function make_table(id, data) {
   s += '  <text x="50%" y="90" class="heavy" text-anchor="middle">' + data.mid.toFixed(2) + '</text>';
   s += '  <text x="100%" y="90" class="heavy" text-anchor="end">' + data.high.toFixed(2) + '</text>';
   s += '  <line x1="' + pos_rate + '%" y1="45" x2="' + pos_rate + '%" y2="55" class="' + data.is_buy + '"/>';
+  if(parseFloat(pos_rate) >= 90.0)
+  s += '  <text x="' + pos_rate + '%" y="35" text-anchor="end" class="' + data.is_buy + ' heavy">' + data.close.toFixed(2) + '</text>';
+  else if(parseFloat(pos_rate) > 10.0 && parseFloat(pos_rate) < 90.0)
   s += '  <text x="' + pos_rate + '%" y="35" text-anchor="middle" class="' + data.is_buy + ' heavy">' + data.close.toFixed(2) + '</text>';
+  else
+  s += '  <text x="' + pos_rate + '%" y="35" text-anchor="start" class="' + data.is_buy + ' heavy">' + data.close.toFixed(2) + '</text>';
   s += '  Sorry, your browser does not support inline SVG.';
   s += '</svg>';
   s += '</td>';
