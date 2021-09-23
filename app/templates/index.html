@@ -16,8 +16,8 @@ line { stroke-width:10; stroke:rgb(0,0,0); }
 </head>
 <body>
 
-<h1>투자 데이터</h1>
-<select>
+<h1 id="top_title">투자 데이터</h1>
+<select id="myselect">
   <option value='1mo' selected>1달</option>
   <option value='1y'>1년</option>
   <option value='3mo'>3달</option>
@@ -79,6 +79,7 @@ function make_table(id, data) {
   $("#"+id).html(s);
 }
 function get_data(data) {
+  var select_text = $("#myselect option:selected").text();
   obj = JSON.parse(data);
   make_table("usdkrw", obj.usdkrw)
   make_table("dxy", obj.dxy)
@@ -87,6 +88,7 @@ function get_data(data) {
   $("#dxy_close").html(obj.dxy.close.toFixed(2));
   $("#gap_mid").html(obj.gap.mid.toFixed(2) + "%");
   $("#proper_mid").html(obj.proper.mid.toFixed(2));
+  $("#top_title").html("투자 데이터 - " + select_text);
 }
 
 var url ="/dollar/1mo"
@@ -94,7 +96,17 @@ $('select').on('change', function() {
   url ="/dollar/" + this.value;
   $.ajax({
     url: url,
-    success: get_data
+    success: get_data,
+    error: function(jqXHR, exception) {
+      $("#usdkrw").html("");
+      $("#dxy").html("");
+      $("#gap").html("");
+      $("#proper").html("");
+      $("#dxy_close").html("-");
+      $("#gap_mid").html("-");
+      $("#proper_mid").html("-");
+      $("#top_title").html('<font color="red">투자 데이터 - 에러</font>');
+    }
   });
 });
 $.ajax({
