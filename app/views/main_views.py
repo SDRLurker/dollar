@@ -2,6 +2,9 @@ from flask import Blueprint, render_template
 import yfinance as yf
 import json
 import datetime
+from json import JSONEncoder
+import pickle
+import traceback
 
 def get_ticker_hist(symbol, period):
     obj = yf.Ticker(symbol)
@@ -69,8 +72,14 @@ def get_proper_usdkrw(dxy, gap_rate, usdkrw):
 
 bp = Blueprint('main', __name__, url_prefix='/')
 
-@bp.route('/dollar/<period>')
-def get_dollar_json(period):
+# subclass JSONEncoder
+class DateTimeEncoder(JSONEncoder):
+        #Override the default method
+        def default(self, obj):
+            if isinstance(obj, (datetime.date, datetime.datetime)):
+                return obj.isoformat()
+
+def get_dollar_dic(period):
     usdkrw = get_ticker_values( get_ticker_hist("KRW=X", period) )
     dxy = get_ticker_values( get_ticker_hist("DX-Y.NYB", period) )
     gap = get_gap(usdkrw, dxy)
@@ -79,9 +88,27 @@ def get_dollar_json(period):
         'usdkrw': usdkrw,
         'dxy': dxy,
         'gap': gap,
-        'proper': proper
+        'proper': proper,
+        'created': datetime.datetime.now(),
     }
-    return json.dumps(dollar_dic, indent = 4)
+    return dollar_dic
+
+@bp.route('/dollar/<period>', methods=('GET', ))
+def get_dollar_json(period):
+    try:
+        dollar_dic = pickle.load(open('%s.pkl' % period, 'rb'))
+    except:
+        traceback.print_exc()
+        dollar_dic = get_dollar_dic(period)
+    return json.dumps(dollar_dic, indent = 4, cls=DateTimeEncoder)
+
+@bp.route('/dollar/<period>', methods=('POST', ))
+def post_dollar_json(period):
+    dollar_dic = get_dollar_dic(period)
+    pickle.dump(dollar_dic, open('%s.pkl' % period, 'wb'))
+    now = datetime.datetime.now()
+    result_dic = {'created':dollar_dic.get('created', now)}
+    return json.dumps(result_dic, indent = 4, cls=DateTimeEncoder)
 
 @bp.route('/')
 def index():
