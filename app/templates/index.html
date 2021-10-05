@@ -23,7 +23,7 @@ line { stroke-width:10; stroke:rgb(0,0,0); }
   <option value='3mo'>3달</option>
   <option value='6mo'>6달</option>
 </select>
-<h2>달러지수대비 적정환율</h2>
+<h2>달러지수대비 적정환율 ( <span id="created"></span> )</h2>
 <table width="100%">
 <tr>
 <td>달러 지수</td>
@@ -85,6 +85,7 @@ function get_data(data) {
   make_table("dxy", obj.dxy)
   make_table("gap", obj.gap)
   make_table("proper", obj.proper)
+  $("#created").html(obj.created);
   $("#dxy_close").html(obj.dxy.close.toFixed(2));
   $("#gap_mid").html(obj.gap.mid.toFixed(2) + "%");
   $("#proper_mid").html(obj.proper.mid.toFixed(2));
