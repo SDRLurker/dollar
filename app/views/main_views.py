@@ -50,6 +50,12 @@ def get_gap(usdkrw, dxy):
         close = gap_dic["close"] = dxy.get("close", 0) / usdkrw.get("close", 0) * 100.0
     if dxy.get("mid", 0) and usdkrw.get("mid", 0):
         mid = gap_dic["mid"] = dxy.get("mid", 0) / usdkrw.get("mid", 0) * 100.0
+        hgap = gap_dic["high"] - mid
+        lgap = mid - gap_dic["low"]
+        if hgap > lgap:
+            gap_dic["low"] = mid - hgap
+        else:
+            gap_dic["high"] = mid + lgap
     gap_dic["is_buy"] = bool(close > mid)
     return gap_dic
 
@@ -61,13 +67,19 @@ def get_proper_usdkrw(dxy, gap_rate, usdkrw):
         proper_dic["mid"] = mid
     if dxy.get("high", 0) and gap_rate.get("low", 0):
         proper_dic["high"] = dxy.get("high", 0) / gap_rate.get("low", 0) * 100.0
+        hgap = proper_dic["high"] - mid
     if dxy.get("low", 0) and gap_rate.get("high", 0):
         proper_dic["low"] = dxy.get("low", 0) / gap_rate.get("high", 0) * 100.0
+        lgap = mid - proper_dic["low"]
     if usdkrw.get("close", 0):
         usdkrw_close = usdkrw.get("close", 0)
         proper_dic["close"] = usdkrw_close
     if mid and usdkrw_close:
         proper_dic["is_buy"] = bool(usdkrw_close < mid)
+        if hgap > lgap:
+            proper_dic["low"] = mid - hgap
+        else:
+            proper_dic["high"] = mid + lgap
     return proper_dic
 
 bp = Blueprint('main', __name__, url_prefix='/')
