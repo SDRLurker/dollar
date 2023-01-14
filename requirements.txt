@@ -20,5 +20,5 @@ six==1.16.0
 typing-extensions==3.10.0.2
 urllib3==1.26.6
 Werkzeug==2.0.1
-yfinance==0.1.93
+yfinance==0.2.3
 zipp==3.5.0
