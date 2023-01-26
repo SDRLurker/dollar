@@ -9,7 +9,7 @@ import traceback
 def get_ticker_hist(symbol, period):
     obj = yf.Ticker(symbol)
     hist_df = obj.history(period=period, auto_adjust=False)
-    if abs(hist_df['Close'].iloc[-1] - obj.info['regularMarketPrice']) > 0.1:
+    if abs(hist_df['Close'].iloc[-1] - obj.fast_info['last_price']) > 0.1:
         hist_df = hist_df.reset_index()
         new_row = {
           'Date' : datetime.datetime.now(),
