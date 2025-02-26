@@ -1,1 +1,1 @@
-FLASK_APP=dollar.py
+FLASK_APP=app
